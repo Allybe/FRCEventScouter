@@ -26,7 +26,7 @@ if (!fs.existsSync(OUTPUT)) {
 
 (async function () {
     const stream = fs.createWriteStream(OUTPUT + `/${eventKey}-${Date.now()}.csv`);
-    stream.write("Team Numbers, Team Names, Link, Upcoming Regional, Most Recent Regional, Rank In Most Recent Regional, Offensive Power Rating In Most Recent Regional, \n");
+    stream.write("Team Numbers, Team Names, Link, Upcoming Regional, Most Recent Regional, Rank In Most Recent Regional, Wins - Ties - Losses, Offensive Power Rating In Most Recent Regional,\n");
 
     const frcTeams = await events.eventTeamsSimple(eventKey);
 
@@ -52,7 +52,8 @@ const createAndWriteTeamString = async (writeStream, team) => {
         cacheMatchRankingInfo(formatRankings(await events.eventRankings(teamEvents[latestEventIndex].key)), teamEvents[latestEventIndex].key);
     }
 
-    dataChunk += (cachedRankInfo.get(teamEvents[latestEventIndex].key).has(team.key)) ? `Rank ${cachedRankInfo.get(teamEvents[latestEventIndex].key).get(team.key).rank}` + "," : "This team has no ranking for their most recent regional";
+    dataChunk += (cachedRankInfo.get(teamEvents[latestEventIndex].key).has(team.key)) ? `Rank ${cachedRankInfo.get(teamEvents[latestEventIndex].key).get(team.key).rank}` + "," : "This team has no ranking for their most recent regional,";
+    dataChunk += (cachedRankInfo.get(teamEvents[latestEventIndex].key).has(team.key)) ? `${cachedRankInfo.get(teamEvents[latestEventIndex].key).get(team.key).matchStatus.wins} - ${cachedRankInfo.get(teamEvents[latestEventIndex].key).get(team.key).matchStatus.ties} - ${cachedRankInfo.get(teamEvents[latestEventIndex].key).get(team.key).matchStatus.losses}` + "," : "This team had no match records for their most recent regionals,";
 
     writeStream.write(dataChunk + "\n");
 }
@@ -113,9 +114,9 @@ const formatRankings = (eventRankInfo) => {
             rank: eventRankings[i].rank,
             totalRankingPoints: eventRankings[i].extra_stats[0],
             matchStatus: {
-                losses: eventRankings[i].losses,
-                ties: eventRankings[i].ties,
-                wins: eventRankings[i].wins
+                losses: eventRankings[i].record.losses,
+                ties: eventRankings[i].record.ties,
+                wins: eventRankings[i].record.wins
             },
             sortOrder: eventRankings[i].sort_orders,
             numberOfDisqualifiedMatchs: eventRankings[i].dq,
